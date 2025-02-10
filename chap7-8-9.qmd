@@ -1,0 +1,153 @@
+---
+title: "chap 7-8-9"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+
+Note: 
+p.200 
+Cross-validation
+In or out samples - trade off - overfitting-explain to me?
+Fit models perfectly, but out of samples is increasing..
+Error out: models from 7.8..
+
+Overfitting depends upon the priors-which downweight unlikely observations
+
+Can the priors be to thight: yes, if the samples are to small it might?
+
+Regularizing priors:
+
+
+Prediction penalty: distance between in and out error, it will increase when the model is getting more complex (trade off mechanism).
+WAIC, PSIS, CV measure overfitting, regulatization manages overfitting (prediction).
+
+
+Do not use predictive criteria tools to choose a causal estimate (WAIC, PSIS, CV), thats bad.
+
+*Outliers and robust regression*
+Way out in the tails, extreme observations (surprising observations).
+- First, quantify influence of each point (use cross validation)
+- Second, use a mixture model (robust regression)
+
+
+
+# Chap 8
+
+## Real, latent modeling problems
+
+
+Markov chain Monte Carlo
+
+
+- explain it to me D?
+
+
+- draw samples from a posterior distribution.
+  - history dosen't matter, just where you are now (according to the island story)
+  - random sampling
+  
+Basic Rosenbluth algorith
+
+
+How to use Markov chain Monte Carlo
+- The purpose of Monte Carlo
+
+
+
+```{r}
+library(rethinking)
+
+data("Wines2012")
+
+# Wine data set 2012
+#x - s (judge and wine quality are may affect the score S)
+
+d <- Wines2012
+
+
+dat <- list(
+    S=standardize(d$score),
+    J=as.numeric(d$judge),
+    W=as.numeric(d$wine),
+    X=ifelse(d$wine.amer==1,1,2),
+    Z=ifelse(d$judge.amer==1,1,2)
+)
+
+mQ <- ulam(
+      alist(S ~ dnorm(mu, sigma),
+            mu <- Q[W],
+            Q[W] ~ dnorm(0,1),
+            sigma ~ dexp(1)), data=dat, chains=4, cores=4)
+
+
+precis(mQ, 2)
+
+
+# add paramter origin mu
+
+mQO <- ulam(
+      alist(S ~ dnorm(mu, sigma),
+            mu <- Q[W] + O[X],
+            Q[W] ~ dnorm(0,1),
+            O[X] ~dnorm(0, 1),
+            sigma ~ dexp(1)), 
+      data=dat, chains=4, cores=4)
+
+
+plot(precis(mQO, 2))
+
+# add wine quality paramter
+
+mQOJ <- ulam(
+      alist(S ~ dnorm(mu, sigma),
+            mu <- Q[W] + O[X],
+            Q[W] ~ dnorm(0,1),
+            O[X] ~dnorm(0, 1),
+            H[J] ~dnorm(0, 1),
+            D[J] ~dexp(1),
+            sigma ~ dexp(1)), 
+      data=dat, chains=4, cores=4)
+
+
+plot(precis(mQOJ,2)) 
+
+
+
+```
+
+## Interpretation
+
+Diagnostics
+
+1 trace plots
+- whole parameter chain, should be noicy pattern (hairy pattern)
+- warm up (warm up samples) and samples (white)
+- chains = checks the sample distirbution
+
+
+
+2 trace rank plots
+- rank orders for each chain
+- peaks of histogram should be uniform, no particular pattern above each others (low n_eff)
+
+3 r-hat convergence measure
+- when chains converge: start and end of each chains explores same region
+- independent chains explore sam region
+- average should be equal to total average chains?
+
+4 number of effective samples
+- approximation
+ 
+5 divergent transitions
+
+
+
+# chap 9
+
+
+
+
+
+

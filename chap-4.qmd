@@ -1,0 +1,118 @@
+---
+title: "rethink - chap 4"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# Normal distribution
+
+
+
+```{r}
+
+pos <- replicate(1000, sum(runif(16, -1,1)))
+
+hist(pos)
+plot(density(pos))
+
+# 4.3
+prod(1 + runif(12, 0,0.1))
+
+growth <- replicate(10000, prod(1 + runif(12, 0, 0.1)))
+dens(growth, norm.comp = TRUE)
+
+
+# 4.4
+
+big <- replicate(10000, prod(1 + runif(12, 0, 0.5)))
+small <- replicate(10000, prod(1 + runif(12, 0, 0.01)))
+
+dens(small, norm.comp = TRUE)
+
+# log
+
+log.big <- replicate(10000, log(prod(1 + runif(12, 0, 0.5))))
+dens(log.big, norm.comp = TRUE)
+
+
+# 4.6
+
+w <- 6; n <- 9;
+
+p_grid <- seq(from=0, to=1, length.out=100)
+posterior <- dbinom(w,n,p_grid)* dunif(p_grid, 0,1)
+posterior <- posterior / sum(posterior)
+
+```
+
+
+The data 4.3.1
+
+```{r}
+
+library(rethinking)
+
+data("Howell1")
+
+d <- Howell1
+
+str(d)
+
+
+rethinking::precis(d, hist=FALSE)
+
+
+
+
+d$height
+
+d2 <- d[d$age >=18 , ]
+
+dens(d2$height)
+
+
+sample_mu <- rnorm(1e4, 178, 20)
+sample_sigma <- runif(1e4, 0, 50)
+prior_h <- rnorm(1e4, sample_mu, sample_sigma)
+dens(prior_h)
+
+```
+
+The figure shows the expected distribution of heights, averaged over the prior
+
+
+```{r}
+mu.list <- seq(from=150, to=160, length.out=100)
+sigma.list <- seq(from=7, to=9, length.out=100)
+
+post <- expand.grid(mu=mu.list, sigma=sigma.list)
+post$LL <- sapply(1:nrow(post), function(i) sum(dnorm(d2$height, post$mu[i], post$sigma[i], log=TRUE)))
+
+post$prod <- post$LL + dnorm(post$mu, 178, 20, TRUE) + dunif(post$sigma, 0, 50, TRUE) 
+post$prob <- exp(post$prod - max(post$prod))
+
+# PLOT posterior distribution
+
+contour_xyz(post$mu, post$sigma, post$prob)
+
+image_xyz(post$mu, post$sigma, post$prob)
+
+
+# Sampling from the posterior
+
+sample.rows <- sample(1:nrow(post), size=1e4, replace=TRUE, prob=post$prob)
+sample.mu <- post$mu[sample.rows]
+sample.sigma <- post$sigma[sample.rows]
+
+plot(sample.mu, sample.sigma, cex=0.5, pch=16, col=col.alpha(rangi2,0.1))
+
+```
+
+First sampling row numbers for the posterior values
+
+Then 
+
+
+

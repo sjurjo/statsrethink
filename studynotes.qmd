@@ -1,0 +1,19 @@
+---
+title: "notes"
+format: html
+editor: visual
+---
+
+# notes 17.01.2025
+
+# Linear regression
+
+- 
+
+- why prior: 
+first: make more certainty in our models and collected data
+second: sampling from a posterior distribution, we get a better estimator of the parameters measured
+
+This does not mean we can include several priors to enhance our models...
+
+posterior = (is proportional to) likelihood x prior
